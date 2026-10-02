@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<!-- 修复1：移除 viewport-fit=cover，避免部分手机浏览器布局错乱 -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>VCTCN选手 你最看好谁 · 投票</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23c8102e'/%3E%3Ctext x='32' y='44' font-size='38' text-anchor='middle' fill='%23fff' font-family='Arial Black' font-weight='900'%3EV%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#c8102e;
+  --red-deep:#8a0b20;
+  --red-dark:#5e0715;
+  --ink:#16100f;
+  --paper:#f6f1ea;
+  --card:#fffdf9;
+  --line:#e7ded2;
+  --muted:#8a7f74;
+  --support:#e0473f;
+  --support-deep:#b42620;
+  --flop:#3a3430;
+  --flop-deep:#221e1b;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  line-height:1.5;
+  min-height:100vh;
+  /* 修复2：确保页面正常流式滚动 */
+  width:100%;
+  overflow-x:hidden;
+}
+
+/* ===== 第一版质感大标题 ===== */
+.hero{
+  position:relative;
+  width:100%;
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(255,255,255,.18) 0%, rgba(255,255,255,0) 55%),
+    linear-gradient(160deg, var(--red-deep) 0%, var(--red) 55%, #e13a3a 100%);
+  padding:46px 18px 40px;
+  text-align:center;
+  overflow:hidden;
+}
+
+.hero::after{
+  content:"";
+  position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.28'/%3E%3C/svg%3E");
+  opacity:.5;pointer-events:none;mix-blend-mode:soft-light;
+}
+
+.hero::before{
+  content:"";
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(115deg, rgba(0,0,0,.06) 0 2px, transparent 2px 10px);
+  opacity:.55;pointer-events:none;
+}
+
+.hero-inner{position:relative;z-index:1}
+
+.kicker{
+  display:inline-block;
+  font-size:12px;font-weight:700;letter-spacing:.28em;
+  color:rgba(0,0,0,.72);
+  border:1px solid rgba(0,0,0,.35);
+  padding:4px 14px;border-radius:999px;margin-bottom:18px;
+}
+
+.hero h1{
+  font-size:clamp(34px, 8vw, 56px);
+  font-weight:900;
+  letter-spacing:.04em;
+  color:#000;
+  text-shadow:0 2px 0 rgba(255,255,255,.22), 0 6px 18px rgba(0,0,0,.28);
+  line-height:1.18;
+}
+
+.hero h1 .hl{
+  color:#fff;
+  text-shadow:0 2px 0 rgba(0,0,0,.35), 0 6px 16px rgba(0,0,0,.3);
+}
+
+.hero .sub{
+  margin-top:16px;font-size:14px;font-weight:500;color:rgba(0,0,0,.78);
+  letter-spacing:.04em;
+}
+
+/* ===== 主体 ===== */
+main{
+  max-width:760px;
+  margin:0 auto;
+  padding:22px 14px 60px;
+  /* 修复3：强制标准文档流，防止flex/grid塌陷 */
+  display:block;
+  width:100%;
+}
+
+/* 顶部统计面板 */
+.total-panel{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:18px 20px;
+  box-shadow:0 1px 0 rgba(0,0,0,.04);
+  margin-bottom:20px;
+  display:block;
+  width:100%;
+}
+
+.stat-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:12px;
+  width:100%;
+}
+
+.stat-row + .stat-row{
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid var(--line);
+}
+
+.stat-row .label{font-size:14px;font-weight:700;color:var(--muted);letter-spacing:.05em}
+
+.top-team-info, .top-player-info{
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+}
+
+.top-team-info .top-team-tag{
+  font-size:22px;font-weight:900;color:var(--support-deep);
+}
+
+.top-team-info .top-team-name,
+.top-player-info .top-player-team{
+  font-size:14px;color:var(--muted);
+}
+
+.top-team-info .top-team-score,
+.top-player-info .top-player-score{
+  font-size:13px;color:var(--muted);
+}
+
+.top-player-info .top-player-name{
+  font-size:18px;font-weight:900;color:var(--ink);
+}
+
+/* ===== 战队分区 ===== */
+/* 修复4：确保每个战队区块宽度100%，grid布局明确 */
+.team-section{
+  width:100%;
+  display:grid;
+  grid-template-columns:70px 1fr;
+  margin-bottom:16px;
+  border-radius:16px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  background:var(--card);
+  /* 修复5：防止grid内容溢出 */
+  min-height:0;
+}
+
+/* 左侧战队栏：横向文字，上简称下全称 */
+.team-sidebar{
+  background:linear-gradient(180deg, var(--red-deep), var(--red));
+  color:#fff;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:16px 8px;
+  gap:4px;
+  position:relative;
+  /* 修复6：强制侧边栏有最小宽度 */
+  min-width:0;
+  width:100%;
+}
+
+.team-sidebar::after{
+  content:"";
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(115deg, rgba(0,0,0,.08) 0 2px, transparent 2px 9px);
+  opacity:.4;pointer-events:none;
+}
+
+.team-sidebar .team-tag{
+  font-size:24px;
+  font-weight:900;
+  letter-spacing:.08em;
+  position:relative;z-index:1;
+  text-align:center;
+  word-break:keep-all;
+}
+
+.team-sidebar .team-full{
+  font-size:11px;
+  opacity:.85;
+  letter-spacing:.06em;
+  position:relative;z-index:1;
+  text-align:center;
+}
+
+/* 战队右侧内容区 */
+.team-content{
+  padding:14px 16px;
+  /* 修复7：防止内容区塌陷 */
+  min-width:0;
+  width:100%;
+}
+
+.team-stats{
+  display:flex;
+  justify-content:flex-end;
+  gap:18px;
+  margin-bottom:10px;
+  padding-bottom:10px;
+  border-bottom:1px dashed var(--line);
+  font-size:13px;
+  width:100%;
+}
+
+.team-stats .ts-item{display:flex;align-items:center;gap:6px}
+.team-stats b{font-weight:900;font-size:16px}
+.team-stats .ts-sup b{color:var(--support-deep)}
+.team-stats .ts-flp b{color:var(--flop-deep)}
+
+/* 选手列表 */
+.player-list{
+  list-style:none;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  width:100%;
+}
+
+.player{
+  width:100%;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:12px;
+  padding:10px 12px;
+  border-radius:12px;
+  background:#faf6ef;
+  border:1px solid transparent;
+  transition:border-color .2s;
+}
+
+.player:hover{border-color:var(--line)}
+
+.idx{
+  width:30px;height:30px;border-radius:8px;
+  background:var(--ink);
+  color:#fff;font-weight:900;font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+  flex:none;
+}
+
+.meta{min-width:0}
+.meta .name{font-size:18px;font-weight:800;line-height:1.2}
+.meta .cn{font-size:12px;color:var(--muted);margin-left:6px;font-weight:500}
+
+.btns{display:flex;flex-direction:column;gap:6px}
+
+.vote{display:flex;align-items:center;gap:8px}
+
+.vote .count{
+  font-size:16px;font-weight:900;
+  min-width:36px;text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+
+.vote.sup .count{color:var(--support-deep)}
+.vote.flp .count{color:var(--flop-deep)}
+
+.vbtn{
+  border:none;cursor:pointer;
+  font-family:inherit;font-size:12px;font-weight:700;
+  color:#fff;padding:5px 0;width:70px;border-radius:8px;
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;
+  box-shadow:0 2px 0 rgba(0,0,0,.22);
+  transition:transform .08s, filter .15s;
+  touch-action:manipulation;user-select:none;
+  -webkit-appearance:none;
+  appearance:none;
+}
+
+.vbtn.sup{background:var(--support);box-shadow:0 2px 0 var(--support-deep)}
+.vbtn.flp{background:var(--flop);box-shadow:0 2px 0 var(--flop-deep)}
+.vbtn:active{transform:translateY(1px);filter:brightness(1.05)}
+.vbtn svg{width:13px;height:13px}
+
+.bump{animation:bump .3s ease}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+
+footer{
+  text-align:center;color:var(--muted);font-size:12px;padding:20px 16px 10px;
+  line-height:1.8;
+  width:100%;
+}
+
+/* 手机端适配 */
+@media (max-width:520px){
+  .team-section{
+    grid-template-columns:56px 1fr;
+  }
+
+  .team-sidebar .team-tag{font-size:20px}
+  .team-sidebar .team-full{font-size:10px}
+
+  .player{
+    grid-template-columns:auto 1fr;
+    grid-template-areas:
+      "idx meta"
+      "btns btns";
+    padding:10px 12px;
+  }
+
+  .player .idx{grid-area:idx}
+  .player .meta{grid-area:meta}
+  .player .btns{
+    grid-area:btns;
+    flex-direction:row;
+    gap:10px;
+    margin-top:4px;
+    width:100%;
+  }
+
+  .vote{flex:1}
+  .vbtn{width:auto;flex:1;padding:6px 0}
+
+  .stat-row .label{width:100%}
+  .top-team-info, .top-player-info{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <span class="kicker">2026 无畏契约 · 上海全球冠军赛</span>
+    <h1>VCTCN选手<br><span class="hl">你最看好谁</span></h1>
+    <p class="sub">四支中国战队出征 · 为你看好的选手投上一票</p>
+  </div>
+</header>
+
+<main>
+  <!-- 顶部统计面板 -->
+  <section class="total-panel">
+    <div class="stat-row">
+      <div class="label">赛区净支持最高队伍</div>
+      <div class="top-team-info">
+        <span class="top-team-tag" id="topTeamTag">—</span>
+        <span class="top-team-name" id="topTeamName">暂无数据</span>
+        <span class="top-team-score" id="topTeamScore">0 净支持</span>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="label">赛区人气最高选手</div>
+      <div class="top-player-info">
+        <span class="top-player-name" id="topPlayerName">—</span>
+        <span class="top-player-team" id="topPlayerTeam">暂无数据</span>
+        <span class="top-player-score" id="topPlayerScore">0 净支持</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 战队容器 -->
+  <div id="teamContainer"></div>
+
+  <footer>
+    纯本地演示页 · 投票数据保存在你的浏览器中<br>
+    重置票数：清除浏览器站点数据后刷新即可
+  </footer>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  // ========== 配置数据 ==========
+  var TEAM_INFO = {
+    TYL: { full:"TYLOO" },
+    JDG: { full:"JD Gaming" },
+    EDG: { full:"Edward Gaming" },
+    XLG: { full:"XLG Esports" }
+  };
+
+  var TEAMS_DATA = [
+    {
+      tag:"TYL",
+      players:[
+        {id:"splash"},
+        {id:"Scales", cn:"张震"},
+        {id:"Erv", cn:"沈志伟"},
+        {id:"slowly", cn:"孙科伦"},
+        {id:"SiuFatBB", cn:"庞加曦"}
+      ]
+    },
+    {
+      tag:"JDG",
+      players:[
+        {id:"jkuro", cn:"杨浩聪"},
+        {id:"zhe", cn:"牛哲"},
+        {id:"Yuicaw", cn:"黃湧傑"},
+        {id:"crownfisher", cn:"李翱"},
+        {id:"BerLIN", cn:"张柏霖"}
+      ]
+    },
+    {
+      tag:"EDG",
+      players:[
+        {id:"ZmjjKK", cn:"郑永康"},
+        {id:"nobody", cn:"王森旭"},
+        {id:"CHICHOO", cn:"万顺治"},
+        {id:"Smoggy", cn:"张钊"},
+        {id:"Jieni7", cn:"张君泰"}
+      ]
+    },
+    {
+      tag:"XLG",
+      players:[
+        {id:"happywei", cn:"邓闵维"},
+        {id:"Lysoar", cn:"梁优好"},
+        {id:"NoMan"},
+        {id:"Rarga"},
+        {id:"WsLeo", cn:"黄品维"}
+      ]
+    }
+  ];
+
+  var STORAGE_KEY = "vctcn_vote_fix_2026";
+
+  var ICONS = {
+    sup: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M1 21h4V9H1v12zM23 10c0-1.1-.9-2-2-2h-6.3l.9-4.6c.1-.5 0-1-.3-1.4C14.9 1.5 14.3 1.2 13.7 1.2H13c-.6 0-1.1.3-1.4.8L8 8v13h9.7c1.2 0 2.2-.8 2.4-2l1.8-7.2c.1-.3.1-.6.1-.8z"/></svg>',
+    flp: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 3h-4V15h4V3zM8 3v13l2.5 4.5c.3.5.9.8 1.5.8h2.5c1.1 0 2-.9 2-2 0-.3-.1-.6-.2-.9L15 13h5.4c1.1 0 2-.9 2-2V6c0-1.7-1.3-3-3-3H8z"/></svg>'
+  };
+
+  // ========== 工具函数 ==========
+  function calcTeamScore(teamTag){
+    var team = null;
+    for(var i=0;i<TEAMS_DATA.length;i++){
+      if(TEAMS_DATA[i].tag === teamTag){ team = TEAMS_DATA[i]; break; }
+    }
+    if(!team) return {sup:0, flp:0, net:0};
+    var sup = 0, flp = 0;
+    for(var j=0;j<team.players.length;j++){
+      var p = team.players[j];
+      var r = state[teamTag + "_" + p.id];
+      sup += r.s;
+      flp += r.n;
+    }
+    return { sup: sup, flp: flp, net: sup - flp };
+  }
+
+  function getAllPlayerNetScores(){
+    var list = [];
+    for(var i=0;i<TEAMS_DATA.length;i++){
+      var team = TEAMS_DATA[i];
+      for(var j=0;j<team.players.length;j++){
+        var p = team.players[j];
+        var r = state[team.tag + "_" + p.id];
+        list.push({
+          id: p.id,
+          cn: p.cn || "",
+          team: team.tag,
+          teamFull: TEAM_INFO[team.tag].full,
+          net: r.s - r.n
+        });
+      }
+    }
+    return list;
+  }
+
+  // ========== 数据读写 ==========
+  function loadState(){
+    try{
+      var saved = localStorage.getItem(STORAGE_KEY);
+      if(saved) return JSON.parse(saved);
+    }catch(e){}
+
+    var state = {};
+    for(var i=0;i<TEAMS_DATA.length;i++){
+      var team = TEAMS_DATA[i];
+      for(var j=0;j<team.players.length;j++){
+        var p = team.players[j];
+        state[team.tag + "_" + p.id] = { s:0, n:0 };
+      }
+    }
+    return state;
+  }
+
+  function saveState(state){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+  }
+
+  var state = loadState();
+  var container = document.getElementById("teamContainer");
+
+  // ========== 渲染战队分区 ==========
+  for(var t=0;t<TEAMS_DATA.length;t++){
+    (function(team){
+      var section = document.createElement("section");
+      section.className = "team-section";
+
+      var sidebar = document.createElement("div");
+      sidebar.className = "team-sidebar";
+      sidebar.innerHTML = 
+        '<div class="team-tag">'+team.tag+'</div>'+
+        '<div class="team-full">'+TEAM_INFO[team.tag].full+'</div>';
+
+      var content = document.createElement("div");
+      content.className = "team-content";
+
+      var stats = document.createElement("div");
+      stats.className = "team-stats";
+      stats.innerHTML = 
+        '<div class="ts-item ts-sup">支持 <b data-team-sup="'+team.tag+'">0</b></div>'+
+        '<div class="ts-item ts-flp">拉踩 <b data-team-flp="'+team.tag+'">0</b></div>';
+      content.appendChild(stats);
+
+      var list = document.createElement("ul");
+      list.className = "player-list";
+
+      for(var i=0;i<team.players.length;i++){
+        (function(p, idx){
+          var key = team.tag + "_" + p.id;
+          var record = state[key];
+
+          var li = document.createElement("li");
+          li.className = "player";
+
+          var idxDom = document.createElement("span");
+          idxDom.className = "idx";
+          idxDom.textContent = idx + 1;
+
+          var meta = document.createElement("div");
+          meta.className = "meta";
+          var name = document.createElement("div");
+          name.className = "name";
+          name.textContent = p.id;
+
+          if(p.cn){
+            var cn = document.createElement("span");
+            cn.className = "cn";
+            cn.textContent = p.cn;
+            name.appendChild(cn);
+          }
+
+          meta.appendChild(name);
+
+          var btns = document.createElement("div");
+          btns.className = "btns";
+
+          function buildVote(type, label){
+            var wrap = document.createElement("div");
+            wrap.className = "vote " + (type==="s" ? "sup" : "flp");
+
+            var count = document.createElement("span");
+            count.className = "count";
+            count.textContent = record[type];
+
+            var btn = document.createElement("button");
+            btn.className = "vbtn " + (type==="s" ? "sup" : "flp");
+            btn.type = "button";
+            btn.innerHTML = ICONS[type==="s"?"sup":"flp"] + label;
+
+            btn.addEventListener("click", function(){
+              record[type]++;
+              count.textContent = record[type];
+
+              count.classList.remove("bump");
+              void count.offsetWidth;
+              count.classList.add("bump");
+
+              saveState(state);
+              updateTeamStats(team.tag);
+              updateTopTeam();
+              updateTopPlayer();
+            });
+
+            wrap.appendChild(count);
+            wrap.appendChild(btn);
+            return wrap;
+          }
+
+          btns.appendChild(buildVote("s", "支持"));
+          btns.appendChild(buildVote("n", "拉踩"));
+
+          li.appendChild(idxDom);
+          li.appendChild(meta);
+          li.appendChild(btns);
+          list.appendChild(li);
+        })(team.players[i], i);
+      }
+
+      content.appendChild(list);
+      section.appendChild(sidebar);
+      section.appendChild(content);
+      container.appendChild(section);
+    })(TEAMS_DATA[t]);
+  }
+
+  // ========== 更新战队小计 ==========
+  function updateTeamStats(teamTag){
+    var score = calcTeamScore(teamTag);
+    document.querySelector('[data-team-sup="'+teamTag+'"]').textContent = score.sup;
+    document.querySelector('[data-team-flp="'+teamTag+'"]').textContent = score.flp;
+  }
+
+  // ========== 更新赛区净支持最高队伍 ==========
+  function updateTopTeam(){
+    var teamScores = [];
+    for(var i=0;i<TEAMS_DATA.length;i++){
+      var team = TEAMS_DATA[i];
+      var score = calcTeamScore(team.tag);
+      teamScores.push({
+        tag: team.tag,
+        full: TEAM_INFO[team.tag].full,
+        net: score.net
+      });
+    }
+
+    teamScores.sort(function(a,b){ return b.net - a.net; });
+    var top = teamScores[0];
+
+    var allZero = true;
+    for(var i=0;i<teamScores.length;i++){
+      if(teamScores[i].net !== 0){ allZero = false; break; }
+    }
+
+    if(allZero){
+      document.getElementById("topTeamTag").textContent = "—";
+      document.getElementById("topTeamName").textContent = "暂无数据";
+      document.getElementById("topTeamScore").textContent = "0 净支持";
+      return;
+    }
+
+    document.getElementById("topTeamTag").textContent = top.tag;
+    document.getElementById("topTeamName").textContent = top.full;
+    document.getElementById("topTeamScore").textContent = top.net + " 净支持";
+  }
+
+  // ========== 更新赛区人气最高选手 ==========
+  function updateTopPlayer(){
+    var players = getAllPlayerNetScores();
+    players.sort(function(a,b){ return b.net - a.net; });
+    var top = players[0];
+
+    var allZero = true;
+    for(var i=0;i<players.length;i++){
+      if(players[i].net !== 0){ allZero = false; break; }
+    }
+
+    if(allZero){
+      document.getElementById("topPlayerName").textContent = "—";
+      document.getElementById("topPlayerTeam").textContent = "暂无数据";
+      document.getElementById("topPlayerScore").textContent = "0 净支持";
+      return;
+    }
+
+    var displayName = top.cn ? top.id + "（" + top.cn + "）" : top.id;
+    document.getElementById("topPlayerName").textContent = displayName;
+    document.getElementById("topPlayerTeam").textContent = top.teamFull;
+    document.getElementById("topPlayerScore").textContent = top.net + " 净支持";
+  }
+
+  // 页面初始化
+  for(var i=0;i<TEAMS_DATA.length;i++){
+    updateTeamStats(TEAMS_DATA[i].tag);
+  }
+  updateTopTeam();
+  updateTopPlayer();
+
+})();
+</script>
+</body>
+</html>
