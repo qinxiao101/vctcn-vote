@@ -355,11 +355,11 @@ footer{
   <!-- 顶部统计面板 -->
   <section class="total-panel">
     <div class="stat-row">
-      <div class="label">赛区净支持最高队伍</div>
+      <div class="label">赛区人气最高队伍</div>
       <div class="top-team-info">
         <span class="top-team-tag" id="topTeamTag">—</span>
         <span class="top-team-name" id="topTeamName">暂无数据</span>
-        <span class="top-team-score" id="topTeamScore">0 净支持</span>
+        <span class="top-team-score" id="topTeamScore">0 人气值</span>
       </div>
     </div>
     <div class="stat-row">
@@ -367,7 +367,7 @@ footer{
       <div class="top-player-info">
         <span class="top-player-name" id="topPlayerName">—</span>
         <span class="top-player-team" id="topPlayerTeam">暂无数据</span>
-        <span class="top-player-score" id="topPlayerScore">0 净支持</span>
+        <span class="top-player-score" id="topPlayerScore">0 人气值</span>
       </div>
     </div>
   </section>
@@ -639,13 +639,13 @@ footer{
     if(allZero){
       document.getElementById("topTeamTag").textContent = "—";
       document.getElementById("topTeamName").textContent = "暂无数据";
-      document.getElementById("topTeamScore").textContent = "0 净支持";
+      document.getElementById("topTeamScore").textContent = "0 人气值";
       return;
     }
 
     document.getElementById("topTeamTag").textContent = top.tag;
     document.getElementById("topTeamName").textContent = top.full;
-    document.getElementById("topTeamScore").textContent = top.net + " 净支持";
+    document.getElementById("topTeamScore").textContent = top.net + " 人气值";
   }
 
   // ========== 更新赛区人气最高选手 ==========
@@ -662,14 +662,14 @@ footer{
     if(allZero){
       document.getElementById("topPlayerName").textContent = "—";
       document.getElementById("topPlayerTeam").textContent = "暂无数据";
-      document.getElementById("topPlayerScore").textContent = "0 净支持";
+      document.getElementById("topPlayerScore").textContent = "0 人气值";
       return;
     }
 
     var displayName = top.cn ? top.id + "（" + top.cn + "）" : top.id;
     document.getElementById("topPlayerName").textContent = displayName;
     document.getElementById("topPlayerTeam").textContent = top.teamFull;
-    document.getElementById("topPlayerScore").textContent = top.net + " 净支持";
+    document.getElementById("topPlayerScore").textContent = top.net + " 人气值";
   }
 
   // 页面初始化
